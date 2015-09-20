@@ -385,6 +385,61 @@ var demon = (function() {
 
 	}());
 
+	// rng and math utils
+	(function() {
+		var randomInt = demon.randomInt = function randomInt(min, max) {
+			if (min == null) {
+				max = 0x7fffffff;
+				min = 0;
+			}
+			else if (max == null) {
+				max = min;
+				min = 0;
+			}
+			else if (max <= min) {
+				return min;
+			}
+			return Math.floor(Math.random(max - min + 1) + min);
+		};
+
+		var randomIntX = demon.randomIntX = function randomIntX(min, max) {
+			return randomInt(min, max-1);
+		};
+
+		var randomFloat = demon.randomFloat = function randomFloat(min, max) {
+			if (max <= min) {
+				return min;
+			}
+			return Math.random() * (max - min) + min;
+		};
+
+		var signOf = demon.signOf = function signOf(v) {
+			return v < 0 ? -1 : (v > 0 ? 1 : 0);
+		};
+
+		var clamp = demon.clamp = function clamp(v, min, max) {
+			return v < min ? min : (v > max ? max : v);
+		};
+
+		var lerp = demon.lerp = function lerp(a, b, t) {
+			return a * (1.0 - t) + b * t;
+		};
+
+		var clamp01 = demon.clamp01 = function clamp01(v) {
+			return clamp(v, 0, 1)
+		};
+
+		var sqr = demon.sqr = function sqr(v) {
+			return v*v;
+		};
+
+		var cube = demon.cube = function cube(v) {
+			return v*v*v;
+		};
+
+	}());
+
+
 	// some utilities that are needed for the rest of the code but are generally useful.
 	demon.createCanvas = createCanvas;
 	function createCanvas(width, height, dpiAware) {
