@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>input test</title>
+</head>
+<body>
+<script src="/demon.js"></script>
+<script>
+'use strict';
+
+var colors = [
+	'#27F9A6',
+	'#2BACE1',
+	'#F8CB51',
+	'#FF33C4',
+	'#262021',
+	'#63EF51',
+	'#723DE0',
+];
+
+var demo = {
+	totalTime: 0,
+	mx: 0,
+	my: 0,
+
+	ms: 0,
+	mf: 4,
+
+	cf: 0,
+	cs: 5,
+
+	bg: 3,
+
+	update: function(dt) {
+		this.totalTime += dt;
+		this.mx = demon.mouse.x;
+		this.my = demon.mouse.y;
+
+		if (demon.mouseDown()) {
+			this.ms = 4;
+		}
+		else {
+			this.ms = 2;
+		}
+
+		if (demon.mousePressed()) {
+			this.mf = demon.wrap(this.mf+1, colors.length);
+		}
+
+		if (demon.keyPressed(demon.KC.Left)) {
+			this.cf = demon.wrap(this.cf+1, colors.length);
+		}
+
+		if (demon.keyReleased(demon.KC.Right)) {
+			this.cs = demon.wrap(this.cs+1, colors.length);
+		}
+
+		this.bg = demon.keyDown(demon.KC.Space) ? 3 : 6;
+
+	},
+
+	render: function(ctx) {
+		ctx.fillStyle = colors[this.bg];
+		ctx.fillRect(0, 0, demon.width, demon.height);
+		var r = Math.min(demon.width, demon.height) / 4;
+		var cr = r / 2;
+		var theta = this.totalTime;
+
+		var x = Math.cos(theta) * r;
+		var y = -Math.sin(theta) * r;
+
+		x += demon.width/2;
+		y += demon.height/2;
+
+		ctx.beginPath();
+		ctx.arc(x, y, cr, 0, Math.PI*2);
+		ctx.fillStyle = colors[this.cf];
+		ctx.strokeStyle = colors[this.cs];
+		ctx.lineWidth = 3;
+		ctx.fill();
+		ctx.stroke();
+
+
+		ctx.beginPath();
+		ctx.arc(this.mx, this.my, cr, 0, Math.PI*2);
+		ctx.fillStyle = colors[this.mf];
+		ctx.strokeStyle = colors[this.ms];
+		ctx.fill();
+		ctx.stroke();
+	}
+};
+
+
+
+
+
+demon.start(demo, { showFPS: true });
+
+
+</script>
+	</body>
+</html>

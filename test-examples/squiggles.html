@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>squiggle test</title>
+</head>
+<body>
+<script src="/demon.js"></script>
+<script>
+'use strict';
+// ported from http://codepen.io/clindsey/pen/avNxrr
+
+var squiggleCount = 800
+var angleRange = 30;
+
+var squiggles = [];
+
+function createSquiggle(squiggle) {
+	if (!squiggle) {
+		squiggle = {};
+	}
+	squiggle.x = demon.width * 0.5;
+	squiggle.y = demon.height * 0.5;
+	squiggle.ox = squiggle.x;
+	squiggle.oy = squiggle.y;
+	squiggle.rotation = demon.randFloat(Math.PI*2.0);
+	squiggle.length = 2;
+	squiggle.width = 3;
+	squiggle.color = 'hsl('+demon.randInt(360)+', 55%, 70%)';
+	return squiggle;
+}
+
+function adjustAngle(angle) {
+	var offset = demon.randFloat(demon.degToRad(-angleRange/2),
+	                             demon.degToRad(+angleRange/2));
+	return demon.wrap(angle+offset, Math.PI*2);
+}
+
+function updateSquiggle(squiggle) {
+	var oldRotation = squiggle.rotation;
+	var s = Math.sin(oldRotation);
+	var c = Math.cos(oldRotation);
+	var dx = (c - s) * squiggle.length;
+	var dy = (s + c) * squiggle.length;
+	squiggle.rotation = adjustAngle(oldRotation);
+	squiggle.x += dx;
+	squiggle.y += dy;
+	if (squiggle.x < 0 || squiggle.x >= demon.width || squiggle.y < 0 || squiggle.y >= demon.height) {
+		createSquiggle(squiggle);
+	}
+}
+
+function renderSquiggle(ctx, squiggle) {
+	ctx.strokeStyle = squiggle.color;
+	ctx.lineWidth = squiggle.width;
+	ctx.beginPath();
+	ctx.moveTo(squiggle.ox, squiggle.oy);
+	ctx.lineTo(squiggle.x, squiggle.y);
+	ctx.stroke();
+	squiggle.ox = squiggle.x;
+	squiggle.oy = squiggle.y;
+}
+
+var offCanvas = null;
+var offContext = null;
+demon.start({
+	init: function() {
+		offCanvas = document.createElement('canvas');
+		this.resize();
+		offContext = offCanvas.getContext('2d');
+		offContext.clearRect(0, 0, offCanvas.width, offCanvas.height);
+		offContext.globalAlpha = 0.9;
+		for (var i = 0; i < squiggleCount; ++i) {
+			squiggles.push(createSquiggle());
+		}
+	},
+
+	resize: function(w, h) {
+		offCanvas.width = demon.screen.width;
+		offCanvas.height = demon.screen.height;
+		// high dpi support
+		offCanvas.style.width = demon.screen.style.width
+		offCanvas.style.height = demon.screen.style.height
+		offContext = offCanvas.getContext('2d');
+		offContext.clearRect(0, 0, offCanvas.width, offCanvas.height);
+		offContext.globalAlpha = 0.9;
+	},
+
+	render: function(ctx) {
+		// console.time('render');
+		ctx.save();
+		ctx.scale(demon.dpi, demon.dpi);
+		for (var i = 0; i < squiggles.length; ++i) {
+			renderSquiggle(ctx, squiggles[i]);
+		}
+		ctx.restore();
+
+		offContext.clearRect(0, 0, offCanvas.width, offCanvas.height);
+		offContext.drawImage(ctx.canvas, 0, 0);
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+		ctx.drawImage(offCanvas, 0, 0);
+		// console.timeEnd('render');
+	},
+	update: function() {
+		console.time('update');
+		for (var i = 0; i < squiggles.length; ++i) {
+			updateSquiggle(squiggles[i]);
+		}
+		console.timeEnd('update');
+	}
+}, {
+	showFPS: true,
+	autoScaleDpi: false,
+	useDebugKeybindings: true,
+	// noOffscreenCanvas: true,
+	fixedTimestep: false,
+});
+
+</script>
+	</body>
+</html>
