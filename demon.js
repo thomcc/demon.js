@@ -399,7 +399,7 @@ var demon = (function() {
 			else if (max <= min) {
 				return min;
 			}
-			return Math.floor(Math.random(max - min + 1) + min);
+			return Math.floor(Math.random() * (max - min + 1) + min);
 		};
 
 		var randomIntX = demon.randomIntX = function randomIntX(min, max) {
@@ -407,7 +407,15 @@ var demon = (function() {
 		};
 
 		var randomFloat = demon.randomFloat = function randomFloat(min, max) {
-			if (max <= min) {
+			if (min == null) {
+				max = 1.0;
+				min = 0;
+			}
+			else if (max == null) {
+				max = min;
+				min = 0;
+			}
+			else if (max <= min) {
 				return min;
 			}
 			return Math.random() * (max - min) + min;
@@ -435,6 +443,21 @@ var demon = (function() {
 
 		var cube = demon.cube = function cube(v) {
 			return v*v*v;
+		};
+
+		var D2R = Math.PI / 180;
+		var R2D = 180 / Math.PI;
+
+		var degToRad = demon.degToRad = function(deg) {
+			return deg * D2R;
+		};
+
+		var radToDeg = demon.radToDeg = function(rad) {
+			return rad * R2D;
+		};
+
+		var wrap = demon.wrap = function(n, wrapAround) {
+			return ((n % wrapAround) + wrapAround) % wrapAround;
 		};
 
 	}());
@@ -538,8 +561,8 @@ var demon = (function() {
 			demonInternal.overlayCanvas.width = width*demon.dpi;
 			demonInternal.overlayCanvas.height = height*demon.dpi;
 		}
-		if (demon.running && demon.demo != null && demon.demo.onResize) {
-			demon.demo.onResize();
+		if (demon.running && demon.demo != null && demon.demo.resize) {
+			demon.demo.resize(demon.width, demon.height, demon.screen.width, demon.screen.height);
 		}
 		console.log("resized window from "+oldWidth+"x"+oldHeight+" to "+width+"x"+height);
 	}
@@ -584,6 +607,7 @@ var demon = (function() {
 	demon.DEFAULT_OPTIONS = {
 		webgl: false,
 		fps: 60.0,
+		autoScaleDpi: true,
 		// means create our own and fill the window
 		// @TODO: demon should support fixed size (or at least fixed aspect) screens too
 		screen: null
@@ -653,7 +677,11 @@ var demon = (function() {
 		demon.deltaTime = 1.0/options.fps;
 		lastPrint = now();
 		demon.demo = demo;
+		demon.autoScaleDpi = options.autoScaleDpi;
 		demon.running = true;
+		if (demo.init) {
+			demo.init();
+		}
 		run();
 	}
 
@@ -713,9 +741,11 @@ var demon = (function() {
 		//console.time('render');
 		{
 			if (!demon.gl) {
-				demon.ctx.clearRect(0, 0, demon.screen.width, demon.screen.height);
+				//demon.ctx.clearRect(0, 0, demon.screen.width, demon.screen.height);
 				demon.ctx.save();
-				demon.ctx.scale(demon.dpi, demon.dpi);
+				if (demon.autoScaleDpi) {
+					demon.ctx.scale(demon.dpi, demon.dpi);
+				}
 				demo.render(demon.ctx, demon.screen);
 				demon.ctx.restore();
 			}
